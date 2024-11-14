@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from 'next/navigation'
+import { makeFirstLetterUpperCase } from '../app/utils/helpers';
 
 
 export default function QuestionaireButton({q_id, name}: {q_id: number, name: string}) {
@@ -12,9 +13,8 @@ export default function QuestionaireButton({q_id, name}: {q_id: number, name: st
     }
     return (
 
-        <button className="bg-cyan-100 hover:bg-cyan-200 flex flex-col justify-center w-48 mx-auto py-3 text-center my-4 border" onClick={onClick}>
-            <p>q_id: {q_id}</p>
-            <p>name: {name}</p>
+        <button className="bg-cyan-100 hover:bg-cyan-200 flex flex-col justify-center w-60 mx-auto py-3 text-center my-4 border" onClick={onClick}>
+            <p>{makeFirstLetterUpperCase(name)} Questionaire</p>
         </button>
 
     );

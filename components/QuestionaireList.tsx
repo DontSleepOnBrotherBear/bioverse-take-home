@@ -9,9 +9,9 @@ export default async function QuestionaireList({userId}: {userId: number}) {
 
 
     return (
-        <div className="bg-cyan-600 flex flex-col justify-center w-48 mx-auto py-10 text-center">
+        <div className="flex flex-col justify-center items-center w-48 mx-auto py-10 text-center">
     
-            <p>userId: {userId}</p>
+            <p className=''>userId: {userId}</p>
 
             <ul>
                 {questionaires?.map((q) => (
