@@ -13,7 +13,7 @@ export default function QuestionaireButton({q_id, name}: {q_id: number, name: st
     }
     return (
 
-        <button className="bg-cyan-100 hover:bg-cyan-200 flex flex-col justify-center w-60 mx-auto py-3 text-center my-4 border" onClick={onClick}>
+        <button className="bg-cyan-800 hover:bg-cyan-700 text-white font-bold flex flex-col justify-center w-60 mx-auto py-3 text-center rounded-md shadow-sm" onClick={onClick}>
             <p>{makeFirstLetterUpperCase(name)} Questionaire</p>
         </button>
 

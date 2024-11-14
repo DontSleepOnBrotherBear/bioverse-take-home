@@ -1,6 +1,16 @@
 
+import { createClient } from '../utils/supabase/server';
 
-export default function Admin_Panel() {
+export default async function Admin_Panel() {
+
+    const supabase = await createClient();
+
+    //get all the users 
+    const { data: usersData, error: usersError } = await supabase.from('users').select();
+    console.log("users data: ", usersData);
+
+
+    
 
 
     return (

@@ -46,7 +46,7 @@ export default async function Page({ params }: QuestionaireProps) {
                 {makeFirstLetterUpperCase(questionaire_name[0].name)} Questionaire
             </div>
 
-            {questions && <QuestionaireForm questions={questions as Question[]} />}
+            {questions && <QuestionaireForm questionaireId={questionaireId} questions={questions as Question[]} />}
 
         </div>
     );

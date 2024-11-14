@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { type Question } from '../app/types/Question';
+import { useRouter } from 'next/navigation'
+
 
 //data type that will be sent to the backend with the answers
 type QandA = {
@@ -11,9 +13,9 @@ type QandA = {
 }
 
 
-export default function QuestionaireForm({ questions }: { questions: Question[] }) {
+export default function QuestionaireForm({ questionaireId, questions }: { questionaireId: number, questions: Question[] }) {
 
-    console.log('questions:', questions);
+    const router = useRouter();
 
     const [selectedOptions, setSelectedOptions] = useState<QandA[]>([]);
     const [inputAnswers, setInputAnswers] = useState<QandA[]>([]);
@@ -65,78 +67,107 @@ export default function QuestionaireForm({ questions }: { questions: Question[] 
         });
     };
 
-    const handleSubmit = () => {
+    const handleSubmit = async () => {
         setLoading(true);
 
         //combine the selectedOptions and inputAnswers states into one array
         const allAnswers = [...selectedOptions, ...inputAnswers];
 
+        //make sure every question has an answer
+        if (!allAnswers.length) {
+            alert('Please answer all questions');
+            setLoading(false);
+            return;
+        }
+        for (const answer of allAnswers) {
+            if (!answer.mcqAnswers.length && !answer.inputAnswer) {
+                alert('Please answer all questions');
+                setLoading(false);
+                return;
+            }
+        }
+
+        const questionnaireSubmission = {
+            user_id: 1, //hard-coded!
+            questionaire_id: questionaireId,
+            answers: allAnswers
+        }
+
         //send the answers to the db
-        fetch('/api/submit_questionaire', {
+        await fetch('/api/submit_questionaire', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify(allAnswers),
+            body: JSON.stringify(questionnaireSubmission),
         })
         .then((response) => {
             if (response.ok) {
                 console.log('Answers submitted successfully');
+                router.push('/qu_select');
+
             } else {
                 console.error('Failed to submit answers');
+                setLoading(false);
+                alert('Failed to submit answers, please try again');
             }
         })
         .catch((error) => {
             console.error('Error submitting answers:', error);
+            setLoading(false);
         })
           
-        setLoading(false);
     }
-
-    useEffect(() => {
-        console.log('selectedOptions:', selectedOptions);
-        console.log('inputAnswers:', inputAnswers);
-    }, [selectedOptions]);
 
 
     return (
         <>
-        {questions && questions.map ((q: any) => (
-            <div key={q.id} className=" flex flex-col justify-center w-48 mx-auto py-3 text-center w-full text-center my-3  bg-slate-50 shadow-md "  style={{maxWidth: '600px'}}>
+       
+        {loading ? <p className='text-2xl font-bold animate-pulse mt-36 text-center'>Submitting...</p> : (
 
-                <p className='text-xl font-bold mb-3 mx-3'>{q.question_text}</p>
+            <>
+                {questions && questions.map ((q: any) => (
+                    <div key={q.id} className=" flex flex-col justify-center w-48 mx-auto py-3 text-center w-full text-center my-3  bg-slate-50 shadow-md "  style={{maxWidth: '600px'}}>
 
-                {q.question_type === 'mcq' && (
-                    <div className="flex flex-col w-full px-2 mx-auto "  style={{maxWidth: '300px'}}>
-                         {q.question_options.map((option: string, index: number) => (
-                            <label key={`${q.id}-${index}`} className="flex text-start space-x-2  cursor-pointer">
-                                <input
-                                    type="checkbox"
-                                    value={option}
-                                    onChange={() => handleOptionChange(q.id, option)}
-                                    className=""
-                                />
-                                <span>{option}</span>
-                            </label>
-                        ))}
+                        <p className='text-xl font-bold mb-3 mx-3'>{q.question_text}</p>
+
+                        {q.question_type === 'mcq' && (
+                            <div className="flex flex-col w-full px-2 mx-auto "  style={{maxWidth: '300px'}}>
+                                {q.question_options.map((option: string, index: number) => (
+                                    <label key={`${q.id}-${index}`} className="flex text-start space-x-2  cursor-pointer">
+                                        <input
+                                            type="checkbox"
+                                            value={option}
+                                            onChange={() => handleOptionChange(q.id, option)}
+                                            className=""
+                                        />
+                                        <span>{option}</span>
+                                    </label>
+                                ))}
+                            </div>
+                        )}
+
+                        {q.question_type === 'input' && (
+                            <div className="flex flex-col justify-center w-full mx-auto py-3 mx-auto px-3 text-center" style={{maxWidth: '500px'}}>
+                                <textarea className=' p-2 border' placeholder="Type your answer..." rows={4} onChange={(e) => handleInputAnswerChange(q.id, e.target.value)} />
+                            </div>
+                        )}
+            
                     </div>
-                )}
+                ))}
 
-                {q.question_type === 'input' && (
-                    <div className="flex flex-col justify-center w-full mx-auto py-3 mx-auto px-3 text-center" style={{maxWidth: '500px'}}>
-                        <textarea className=' p-2 border' placeholder="Type your answer..." rows={4} onChange={(e) => handleInputAnswerChange(q.id, e.target.value)} />
-                    </div>
-                )}
-    
-            </div>
-        ))}
+                <button 
+                    className="bg-cyan-900 hover:bg-cyan-800 text-white flex flex-col justify-center w-48 mx-auto py-2 text-center mt-4"
+                    onClick={handleSubmit}
+                >
+                    Submit
+                </button>
 
-        <button 
-            className="bg-cyan-900 hover:bg-cyan-800 text-white flex flex-col justify-center w-48 mx-auto py-2 text-center mt-4"
-            onClick={handleSubmit}
-        >
-            Submit
-        </button>
+            </>
+
+        )}
+
+        
         </>
     );
 

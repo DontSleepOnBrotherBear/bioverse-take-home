@@ -2,28 +2,46 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '../../utils/supabase/server';
 
-const supabase = await createClient();
-
 
 export async function POST(request: Request) {
+  const supabase = await createClient();
+
   try {
 
     const body = await request.json();
-    console.log('body: ', body);
 
-    // Insert the questionaire answers into the database
-    const { data, error } = await supabase
-    .from('completed_questionaires')
+    //add a new completed questionaire row
+    const { data: cqData, error: cqError } = await supabase.from('completed_questionaires')
     .insert([
-      { user_id: 1, questionaire_id: 1},
+      { 
+        user_id: body.user_id,
+        questionaire_id: body.questionaire_id,
+        completed_at: new Date().toISOString(),
+      },
     ])
     .select()
+    // console.log("completed questionaire data: ", cqData);
+    // console.log("completed questionaire error: ", cqError);
 
+    //add answers to answer trable
+    const answerData = body.answers.map((answer: { questionId: string, inputAnswer?: string, mcqAnswers?: string[] }) => ({
+      user_id: body.user_id,
+      question_id: answer.questionId,
+      questionaire_id: body.questionaire_id,
+      answer_text: answer.inputAnswer ? answer.inputAnswer : answer.mcqAnswers
+    }));
+    const { data: ansData, error: ansError } = await supabase
+    .from('answers')
+    .insert(answerData)
+    .select()
+    // console.log("answer data: ", ansData);
+    // console.log("answer error: ", ansError);
+      
             
-    return NextResponse.json({ message: 'Questionaire submitted successfully' });
+    return NextResponse.json({ message: 'questionaire submitted successfully' });
    
   } catch (error) {
-    console.error('Error submitting questionaire:', error);
-    return NextResponse.json({ error: 'Failed to submit questionaire' }, { status: 500 });
+    console.error('error submitting questionaire:', error);
+    return NextResponse.json({ error: 'error submitting questionaire' }, { status: 500 });
   }
 }
