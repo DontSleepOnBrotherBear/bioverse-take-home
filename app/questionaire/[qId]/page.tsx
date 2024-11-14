@@ -9,11 +9,9 @@ interface QuestionaireProps {
     };
 }
 
-
-
 export default async function Page({ params }: QuestionaireProps) {
 
-    const { qId } = await params 
+    const { qId } =  params 
     const questionaireId = parseInt(qId);
     const supabase = await createClient();
 
