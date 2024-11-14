@@ -5,7 +5,7 @@ import { type Question } from '../../types/Question';
 
 interface QuestionaireProps {
     params: {
-        questionaireId: number;
+        qId: string;
     };
 }
 
@@ -13,7 +13,8 @@ interface QuestionaireProps {
 
 export default async function Page({ params }: QuestionaireProps) {
 
-    const { questionaireId } = await params;
+    const { qId } = await params 
+    const questionaireId = parseInt(qId);
     const supabase = await createClient();
 
     //get the name of the questionaire
