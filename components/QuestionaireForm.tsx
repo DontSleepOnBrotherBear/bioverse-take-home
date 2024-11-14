@@ -12,14 +12,37 @@ type QandA = {
     mcqAnswers: string[];
 }
 
-
-export default function QuestionaireForm({ questionaireId, questions }: { questionaireId: number, questions: Question[] }) {
+export default function QuestionaireForm({ questionaireId, questions, userId}: { questionaireId: number, questions: Question[], userId: number }) {
 
     const router = useRouter();
 
     const [selectedOptions, setSelectedOptions] = useState<QandA[]>([]);
     const [inputAnswers, setInputAnswers] = useState<QandA[]>([]);
     const [loading, setLoading] = useState(false);
+
+    //loop through all questions and set the initial state of selectedOptions and inputAnswers
+    useEffect(() => {
+        if (questions) {
+            const initialSelectedOptions = questions
+                .filter((q) => q.question_type === 'mcq')
+                .map((q) => {
+                    const questionId = q.id;
+                    const mcqAnswers = Array.isArray(q.placeholder_value) ? q.placeholder_value : [];
+                    return { questionId, inputAnswer: '', mcqAnswers: mcqAnswers };
+                });
+            setSelectedOptions(initialSelectedOptions);
+
+            const initialInputAnswers = questions
+                .filter((q) => q.question_type === 'input')
+                .map((q) => {
+                    const questionId = q.id;
+                    const inputAnswer = q.placeholder_value ? q.placeholder_value : '';
+                    return { questionId, inputAnswer, mcqAnswers: [] };
+                });
+            setInputAnswers(initialInputAnswers);
+        }
+    }, [questions]);
+
 
     //for handling the multiple choice question answers
     const handleOptionChange = (questionId: number, option: string) => {
@@ -88,7 +111,7 @@ export default function QuestionaireForm({ questionaireId, questions }: { questi
         }
 
         const questionnaireSubmission = {
-            user_id: 1, //hard-coded!
+            user_id: userId, 
             questionaire_id: questionaireId,
             answers: allAnswers
         }
@@ -104,7 +127,7 @@ export default function QuestionaireForm({ questionaireId, questions }: { questi
         .then((response) => {
             if (response.ok) {
                 console.log('Answers submitted successfully');
-                router.push('/qu_select');
+                window.location.href = '/qu_select'; 
 
             } else {
                 console.error('Failed to submit answers');
@@ -123,11 +146,11 @@ export default function QuestionaireForm({ questionaireId, questions }: { questi
     return (
         <>
        
-        {loading ? <p className='text-2xl font-bold animate-pulse mt-36 text-center'>Submitting...</p> : (
+        {loading ? <p className='text-2xl font-bold animate-pulse pt-36 text-center bg-gradient-to-r from-slate-100 to-blue-100 min-h-screen'>Submitting...</p> : (
 
             <>
                 {questions && questions.map ((q: any) => (
-                    <div key={q.id} className=" flex flex-col justify-center w-48 mx-auto py-3 text-center w-full text-center my-3  bg-slate-50 shadow-md "  style={{maxWidth: '600px'}}>
+                    <div key={q.id} className=" flex flex-col justify-center w-48 mx-auto py-3 text-center w-full text-center my-3  bg-slate-50 shadow-md rounded-md"  style={{maxWidth: '600px'}}>
 
                         <p className='text-xl font-bold mb-3 mx-3'>{q.question_text}</p>
 
@@ -138,6 +161,7 @@ export default function QuestionaireForm({ questionaireId, questions }: { questi
                                         <input
                                             type="checkbox"
                                             value={option}
+                                            defaultChecked={q.placeholder_value ? q.placeholder_value.includes(option) : false}
                                             onChange={() => handleOptionChange(q.id, option)}
                                             className=""
                                         />
@@ -149,7 +173,12 @@ export default function QuestionaireForm({ questionaireId, questions }: { questi
 
                         {q.question_type === 'input' && (
                             <div className="flex flex-col justify-center w-full mx-auto py-3 mx-auto px-3 text-center" style={{maxWidth: '500px'}}>
-                                <textarea className=' p-2 border' placeholder="Type your answer..." rows={4} onChange={(e) => handleInputAnswerChange(q.id, e.target.value)} />
+                                <textarea 
+                                    className=' p-2 border' 
+                                    defaultValue={q.placeholder_value ? q.placeholder_value : ''}
+                                    placeholder={q.placeholder_value ? "" : 'Type your answer here...'}
+                                    rows={4} 
+                                    onChange={(e) => handleInputAnswerChange(q.id, e.target.value)} />
                             </div>
                         )}
             
@@ -157,7 +186,7 @@ export default function QuestionaireForm({ questionaireId, questions }: { questi
                 ))}
 
                 <button 
-                    className="bg-cyan-900 hover:bg-cyan-800 text-white flex flex-col justify-center w-48 mx-auto py-2 text-center mt-4"
+                    className="bg-cyan-900 font-bold rounded-md hover:bg-cyan-800 text-white flex flex-col justify-center w-48 mx-auto py-2 text-center mt-3"
                     onClick={handleSubmit}
                 >
                     Submit

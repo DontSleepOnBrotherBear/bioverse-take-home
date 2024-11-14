@@ -3,7 +3,9 @@ import QuestionaireButton from './QuestionaireButton';
 import {formatTimestampToReadableDate} from '../app/utils/helpers';
 
 
-export default async function QuestionaireList({userId}: {userId: number}) {
+export default async function QuestionaireList({userId, userEmail}: {userId: number, userEmail: string}) {
+
+    console.log('userId in qustionaire list:', userId);
 
     const supabase = await createClient();
     const { data: questionaires } = await supabase.from("questionaires").select();
@@ -15,7 +17,7 @@ export default async function QuestionaireList({userId}: {userId: number}) {
         );
     }
 
-    //check if the user has completed the questionaire
+    //check if the user has completed the questionaire ////////////////////////////////////////
     const { data: completed_questionaires } = await supabase.from('completed_questionaires').select('questionaire_id').eq('user_id', userId);
 
     //add completed and completed_at fields to questionaire data
@@ -31,9 +33,9 @@ export default async function QuestionaireList({userId}: {userId: number}) {
 
 
     return (
-        <div className="flex flex-col justify-center items-center w-48 mx-auto py-10 text-center">
+        <div className="flex flex-col justify-center items-center w-48 mx-auto py-4 text-center">
     
-            <p className=''>userId: {userId}</p>
+            <p className=''>Logged in as: {userEmail}</p>
 
             {questionaire_data?.map((q) => (
                 <div key={q.id} className="my-6 text-start">

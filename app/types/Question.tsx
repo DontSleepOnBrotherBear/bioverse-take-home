@@ -4,4 +4,5 @@ export type Question = {
     question_text: string;
     question_type: string;
     question_options: string[];
+    placeholder_value: string;
 }
