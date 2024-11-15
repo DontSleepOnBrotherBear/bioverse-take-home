@@ -186,7 +186,7 @@ export default function QuestionaireForm({ questionaireId, questions, userId}: {
                 ))}
 
                 <button 
-                    className="bg-cyan-900 font-bold rounded-md hover:bg-cyan-800 text-white flex flex-col justify-center w-48 mx-auto py-2 text-center mt-3"
+                    className="bg-cyan-900 font-bold rounded-md hover:bg-cyan-800 text-white flex flex-col justify-center w-fit px-10 mx-auto py-2 text-center mt-3"
                     onClick={handleSubmit}
                 >
                     Submit
