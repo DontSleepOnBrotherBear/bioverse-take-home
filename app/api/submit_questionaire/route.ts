@@ -20,8 +20,6 @@ export async function POST(request: Request) {
       },
     ])
     .select()
-    // console.log("completed questionaire data: ", cqData);
-    // console.log("completed questionaire error: ", cqError);
 
     //add answers to answer trable
     const answerData = body.answers.map((answer: { questionId: string, inputAnswer?: string, mcqAnswers?: string[] }) => ({
@@ -34,10 +32,7 @@ export async function POST(request: Request) {
     .from('answers')
     .insert(answerData)
     .select()
-    // console.log("answer data: ", ansData);
-    // console.log("answer error: ", ansError);
-      
-            
+
     return NextResponse.json({ message: 'questionaire submitted successfully' });
    
   } catch (error) {

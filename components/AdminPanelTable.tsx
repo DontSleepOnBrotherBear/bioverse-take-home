@@ -27,13 +27,33 @@ export default function AdminPanelTable({ userData, questionaires }: { userData:
 
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedQuestionaireResults, setSelectedQuestionaireResults] = useState<UserAnswer[]>([]);
+    const [selectedUserName, setSelectedUserName] = useState('');
+    const [selectedUserEmail, setSelectedUserEmail] = useState('');
+    const [selectedQuestionaireName, setSelectedQuestionaireName] = useState('');
+    const [loadingModal, setLoadingModal] = useState(false);
 
     const handleRecordClick = async (userId: number, questionaireId: number) => {
         setIsModalOpen(true);
+        setLoadingModal(true);
+
+        //get the user name and email with the user id
+        const { data: user, error: userError } = await supabase.from('users').select('name, email').eq('id', userId);
+        if (user === null) return;
+        setSelectedUserName(user[0].name);
+        setSelectedUserEmail(user[0].email);
+
+        //get the questionaire name with the questionaire id
+        const { data: questionaire, error: questionaireError } = await supabase.from('questionaires').select('name').eq('id', questionaireId);
+        if (questionaire === null) return;
+        setSelectedQuestionaireName(questionaire[0].name);
 
        //get all items in the 'answers' table that have the user id and questionaire matching
-        const { data: answers, error: answersError } = await supabase.from('answers').select().eq('user_id', userId).eq('questionaire_id', questionaireId);
+        let { data: answers, error: answersError } = await supabase.from('answers').select().eq('user_id', userId).eq('questionaire_id', questionaireId);
         if (answers === null) return;
+        if (answers.length > 3) {
+            //only include the most recent answers
+            answers = answers.slice(answers.length - 3);
+        }
         
         //get the question text for each answer
         let questionIds = answers.map((answer) => {
@@ -54,6 +74,8 @@ export default function AdminPanelTable({ userData, questionaires }: { userData:
             };
         })
         setSelectedQuestionaireResults(userAnswers);
+
+        setLoadingModal(false);
     }
  
     //make the columns of the table
@@ -83,22 +105,29 @@ export default function AdminPanelTable({ userData, questionaires }: { userData:
         <>
        
             <SimpleModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
-                {selectedQuestionaireResults.map((result) => (
-                    <div key={result.question} className="my-2 bg-slate-100 p-2 shadow-md rounded-md">
-                        <p className='font-bold'>Question: </p>
-                        <p className="ml-3">{result.question_text}</p>
-                        <p className='font-bold'>Answer: </p>
-                        {result.question_type === 'mcq' ? ( 
-                        <ul className="ml-3">
-                            {JSON.parse(result.answer).map((ans: string, index: number) => (
-                                <li key={index}>-{ans}</li>
-                            ))}
-                        </ul>
-                        ) : (
-                            <p className="ml-3">{result.answer}</p>
-                        )}
-                    </div>
-                ))}
+                {loadingModal ? <p className="h-full w-full text-center" style={{width: '200px', height: '200px'}}>Loading...</p> : (
+                    <>
+                    <p>User: {selectedUserName}</p>
+                    <p>Email: {selectedUserEmail}</p>
+                    <p>Questionaire: {makeFirstLetterUpperCase(selectedQuestionaireName)}</p>
+                    {selectedQuestionaireResults.map((result) => (
+                        <div key={result.question} className="my-2 bg-slate-100 p-2 shadow-md rounded-md">
+                            <p className='font-bold'>Question: </p>
+                            <p className="ml-3">{result.question_text}</p>
+                            <p className='font-bold'>Answer: </p>
+                            {result.question_type === 'mcq' ? ( 
+                            <ul className="ml-3">
+                                {JSON.parse(result.answer).map((ans: string, index: number) => (
+                                    <li key={index}>-{ans}</li>
+                                ))}
+                            </ul>
+                            ) : (
+                                <p className="ml-3">{result.answer}</p>
+                            )}
+                        </div>
+                    ))}
+                    </>
+                )}
             </SimpleModal>
 
             <div className="overflow-x-auto">

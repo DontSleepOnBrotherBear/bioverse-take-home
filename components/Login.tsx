@@ -1,18 +1,46 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from 'next/navigation'
 import { createClient } from '@supabase/supabase-js'
 
+interface SupabaseConfig {
+    supabaseUrl: string;
+    supabaseAnonKey: string;
+}
 
 export default function Login() {
 
-    const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL ?? "", process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "");
-
-    const router = useRouter();
-
+    const [supabaseConfig, setSupabaseConfig] = useState<SupabaseConfig | null>(null);
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+
+    //fetch the supabase config without exposing
+    useEffect(() => {
+        const fetchSupabaseConfig = async () => {
+            await fetch('/api/supabase_config', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            })
+            .then((response) => {
+                return response.json();
+            }).then((data) => {
+                setSupabaseConfig(data);
+            });
+        };
+
+        fetchSupabaseConfig();
+    }, []);
+
+    if (!supabaseConfig) {
+        return <div></div>;
+    }
+
+    const supabase = createClient(supabaseConfig.supabaseUrl, supabaseConfig.supabaseAnonKey);
+    const router = useRouter();
+
 
     const handleSubmit = async () => {
 

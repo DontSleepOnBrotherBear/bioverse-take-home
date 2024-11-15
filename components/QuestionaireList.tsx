@@ -5,8 +5,6 @@ import {formatTimestampToReadableDate} from '../app/utils/helpers';
 
 export default async function QuestionaireList({userId, userEmail}: {userId: number, userEmail: string}) {
 
-    console.log('userId in qustionaire list:', userId);
-
     const supabase = await createClient();
     const { data: questionaires } = await supabase.from("questionaires").select();
     if (!questionaires || questionaires.length === 0) {
@@ -17,7 +15,7 @@ export default async function QuestionaireList({userId, userEmail}: {userId: num
         );
     }
 
-    //check if the user has completed the questionaire ////////////////////////////////////////
+    //check if the user has completed the questionaire 
     const { data: completed_questionaires } = await supabase.from('completed_questionaires').select('questionaire_id').eq('user_id', userId);
 
     //add completed and completed_at fields to questionaire data
