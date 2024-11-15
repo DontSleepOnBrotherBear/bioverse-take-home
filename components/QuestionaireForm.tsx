@@ -103,7 +103,7 @@ export default function QuestionaireForm({ questionaireId, questions, userId}: {
             return;
         }
         for (const answer of allAnswers) {
-            if (!answer.mcqAnswers.length && !answer.inputAnswer) {
+            if (!answer.mcqAnswers.length && !answer.inputAnswer.trim()) {
                 alert('Please answer all questions');
                 setLoading(false);
                 return;

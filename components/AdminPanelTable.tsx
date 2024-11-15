@@ -139,9 +139,9 @@ export default function AdminPanelTable({ userData, questionaires }: { userData:
                     <p>Questionaire: {makeFirstLetterUpperCase(selectedQuestionaireName)}</p>
                     {selectedQuestionaireResults.map((result) => (
                         <div key={result.question} className="my-2 bg-slate-100 p-2 shadow-md rounded-md">
-                            <p className='font-bold'>Question: </p>
+                            <p className='font-bold'>Q: </p>
                             <p className="ml-3">{result.question_text}</p>
-                            <p className='font-bold'>Answer: </p>
+                            <p className='font-bold'>A: </p>
                             {result.question_type === 'mcq' ? ( 
                             <ul className="ml-3">
                                 {JSON.parse(result.answer).map((ans: string, index: number) => (
