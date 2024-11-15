@@ -14,21 +14,23 @@ export default function Login() {
     const [supabaseConfig, setSupabaseConfig] = useState<SupabaseConfig | null>(null);
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const router = useRouter();
 
     //fetch the supabase config without exposing
     useEffect(() => {
         const fetchSupabaseConfig = async () => {
-            await fetch('/api/supabase_config', {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-            })
-            .then((response) => {
-                return response.json();
-            }).then((data) => {
-                setSupabaseConfig(data);
+          try {
+            const response = await fetch('/api/supabase_config', {
+              method: 'GET',
+              headers: {
+                'Content-Type': 'application/json',
+              },
             });
+            const data = await response.json();
+            setSupabaseConfig(data);
+          } catch (error) {
+            console.error("Error fetching Supabase config", error);
+          }
         };
 
         fetchSupabaseConfig();
@@ -39,7 +41,7 @@ export default function Login() {
     }
 
     const supabase = createClient(supabaseConfig.supabaseUrl, supabaseConfig.supabaseAnonKey);
-    const router = useRouter();
+    
 
 
     const handleSubmit = async () => {

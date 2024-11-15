@@ -1,12 +1,14 @@
 "use client";
 import * as React from "react";
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js'
 import {makeFirstLetterUpperCase} from '../app/utils/helpers';
 import { UserData, UserAnswer, type Questionaire } from '../app/types/UserData';
-const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL ?? "", process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "");
 
-
+interface SupabaseConfig {
+    supabaseUrl: string;
+    supabaseAnonKey: string;
+}
 
 function SimpleModal({ isOpen, onClose, children }: { isOpen: boolean; onClose: () => void; children: React.ReactNode }) {
     if (!isOpen) return null;
@@ -25,12 +27,37 @@ function SimpleModal({ isOpen, onClose, children }: { isOpen: boolean; onClose: 
 
 export default function AdminPanelTable({ userData, questionaires }: { userData: UserData[]; questionaires: Questionaire[] }) {
 
+    const [supabaseConfig, setSupabaseConfig] = useState<SupabaseConfig | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedQuestionaireResults, setSelectedQuestionaireResults] = useState<UserAnswer[]>([]);
     const [selectedUserName, setSelectedUserName] = useState('');
     const [selectedUserEmail, setSelectedUserEmail] = useState('');
     const [selectedQuestionaireName, setSelectedQuestionaireName] = useState('');
     const [loadingModal, setLoadingModal] = useState(false);
+
+    //fetch the supabase config without exposing
+    useEffect(() => {
+        const fetchSupabaseConfig = async () => {
+          try {
+            const response = await fetch('/api/supabase_config', {
+              method: 'GET',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+            });
+            const data = await response.json();
+            setSupabaseConfig(data);
+          } catch (error) {
+            console.error("Error fetching Supabase config", error);
+          }
+        };
+        fetchSupabaseConfig();
+    }, []);
+
+    if (!supabaseConfig) {
+        return <div></div>;
+    }
+    const supabase = createClient(supabaseConfig.supabaseUrl, supabaseConfig.supabaseAnonKey);
 
     const handleRecordClick = async (userId: number, questionaireId: number) => {
         setIsModalOpen(true);
@@ -155,7 +182,11 @@ export default function AdminPanelTable({ userData, questionaires }: { userData:
                                         {column.dataIndex === 'name' || column.dataIndex === 'email' ? (
                                             user[column.dataIndex]
                                         ) : (
-                                            <button onClick={() => handleRecordClick(user.key, Number(column.dataIndex))}>{(user as any)[column.dataIndex]}</button>
+                                            (user as any)[column.dataIndex] === '-' ? 'N/A' :
+                                            <button 
+                                                className='text-cyan-700 font-bold underline' 
+                                                onClick={() => handleRecordClick(user.key, Number(column.dataIndex))}>{(user as any)[column.dataIndex]}
+                                            </button>
                                         )}
                                     </td>
                                 ))}
